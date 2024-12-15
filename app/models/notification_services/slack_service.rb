@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module NotificationServices
   class SlackService < NotificationService
     CHANNEL_NAME_REGEXP = /^#[a-z\d_-]+$/
@@ -10,7 +12,7 @@ module NotificationServices
       [:room_id, {
         placeholder: "#general",
         label: "Notification channel",
-        hint: "If empty Errbit will use the default channel for the webook"
+        hint: "If empty Errbit will use the default channel for the webhook"
       }]
     ]
 
@@ -69,11 +71,8 @@ module NotificationServices
       [
         {title: "Application", value: problem.app.name, short: true},
         {title: "Environment", value: problem.environment, short: true},
-        {title: "Times Occurred", value: problem.notices_count.try(:to_s),
-         short: true},
-        {title: "First Noticed",
-         value: problem.first_notice_at.try(:localtime).try(:to_s, :db),
-         short: true},
+        {title: "Times Occurred", value: problem.notices_count.try(:to_s), short: true},
+        {title: "First Noticed", value: problem.first_notice_at.try(:localtime).try(:to_s, :db), short: true},
         {title: "Backtrace", value: backtrace_lines(problem), short: false}
       ]
     end
@@ -89,7 +88,7 @@ module NotificationServices
       backtrace = notice.backtrace
       return unless backtrace
 
-      output = ""
+      output = +""
       backtrace.lines[0..4].each { |line| output << backtrace_line(line) }
       "```#{output}```"
     end

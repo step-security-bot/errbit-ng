@@ -1,10 +1,12 @@
+# frozen_string_literal: true
+
 require "problem_destroy"
 
 class ProblemMerge
   def initialize(*problems)
     problems = problems.flatten.uniq
     @merged_problem = problems[0]
-    @child_problems = problems[1..-1]
+    @child_problems = problems[1..]
     fail ArgumentError, "need almost 2 uniq different problems" if @child_problems.empty?
   end
   attr_reader :merged_problem, :child_problems

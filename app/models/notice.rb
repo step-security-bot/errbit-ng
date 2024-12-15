@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Notice
   include ActiveModel::Serializers::Xml
 
@@ -124,7 +126,7 @@ class Notice
     message.gsub(/(#<.+?):[0-9a-f]x[0-9a-f]+(>)/, '\1\2')
   end
 
-private
+  private
 
   def problem_recache
     problem.uncache_notice(self)

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class App
   include Comparable
   include Mongoid::Document
@@ -18,9 +20,9 @@ class App
   # Some legacy apps may have string as key instead of BSON::ObjectID
   # identity :type => String
   field :_id,
-    type:          String,
+    type: String,
     pre_processed: true,
-    default:       -> { BSON::ObjectId.new.to_s }
+    default: -> { BSON::ObjectId.new.to_s }
 
   embeds_many :watchers
   embeds_one :issue_tracker, class_name: "IssueTracker"
@@ -35,27 +37,27 @@ class App
   after_find :build_notice_fingerprinter
   after_update :store_cached_attributes_on_problems
 
-  validates :name, :api_key, presence: true, uniqueness: { allow_blank: true }
+  validates :name, :api_key, presence: true, uniqueness: {allow_blank: true}
   validates_associated :watchers
   validates_associated :notice_fingerprinter
   validate :check_issue_tracker
 
   accepts_nested_attributes_for :watchers,
     allow_destroy: true,
-    reject_if:     proc { |attrs| attrs[:user_id].blank? && attrs[:email].blank? }
+    reject_if: proc { |attrs| attrs[:user_id].blank? && attrs[:email].blank? }
   accepts_nested_attributes_for :issue_tracker,
     allow_destroy: true,
-    reject_if:     proc { |attrs| !ErrbitPlugin::Registry.issue_trackers.keys.map(&:to_s).include?(attrs[:type_tracker].to_s) }
+    reject_if: proc { |attrs| !ErrbitPlugin::Registry.issue_trackers.keys.map(&:to_s).include?(attrs[:type_tracker].to_s) }
   accepts_nested_attributes_for :notification_service,
     allow_destroy: true,
-    reject_if:     proc { |attrs| !NotificationService.subclasses.map(&:to_s).include?(attrs[:type].to_s) }
+    reject_if: proc { |attrs| !NotificationService.subclasses.map(&:to_s).include?(attrs[:type].to_s) }
   accepts_nested_attributes_for :notice_fingerprinter
 
-  index({ name: "text" }, default_language: "english")
+  index({name: "text"}, default_language: "english")
 
-  scope :search, ->(value) { where("$text" => { "$search" => value }) }
+  scope :search, ->(value) { where("$text" => {"$search" => value}) }
   scope :watched_by, lambda { |user|
-    where watchers: { "$elemMatch" => { "user_id" => user.id } }
+    where watchers: {"$elemMatch" => {"user_id" => user.id}}
   }
 
   def build_notice_fingerprinter
@@ -83,7 +85,7 @@ class App
     problem = problems.create!(
       error_class: attrs[:error_class],
       environment: attrs[:environment],
-      app_name:    name
+      app_name: name
     )
     problem.errs.create!(attrs.slice(:fingerprint, :problem_id))
   end
@@ -158,11 +160,11 @@ class App
     return if copy_app.blank?
 
     # Copy fields
-    (copy_app.fields.keys - %w(_id name created_at updated_at)).each do |k|
+    (copy_app.fields.keys - ["_id", "name", "created_at", "updated_at"]).each do |k|
       send("#{k}=", copy_app.send(k))
     end
     # Clone the embedded objects that can be changed via apps/edit (ignore errs, etc.)
-    %w(watchers issue_tracker notification_service).each do |relation|
+    ["watchers", "issue_tracker", "notification_service"].each do |relation|
       if (obj = copy_app.send(relation))
         send("#{relation}=", obj.is_a?(Array) ? obj.map(&:clone) : obj.clone)
       end
@@ -196,7 +198,7 @@ class App
     notice_fingerprinter.source == "site"
   end
 
-private
+  private
 
   def store_cached_attributes_on_problems
     Problem.where(app_id: id).update_all(
@@ -219,10 +221,11 @@ private
 
   def normalize_github_repo
     return if github_repo.blank?
+
     github_host = URI.parse(Errbit::Config.github_url).host
     github_host = ::Regexp.escape(github_host)
-    github_repo.strip!
-    github_repo.sub!(%r{(git@|https?://)#{github_host}(/|:)}, "")
-    github_repo.sub!(/\.git$/, "")
+    self.github_repo = github_repo.strip
+    self.github_repo = github_repo.sub(%r{(git@|https?://)#{github_host}(/|:)}, "")
+    self.github_repo = github_repo.sub(/\.git$/, "")
   end
 end

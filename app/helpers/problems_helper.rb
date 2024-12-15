@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ProblemsHelper
   def problem_confirm(action)
     t(format("problems.confirm.%s", action)) unless Errbit::Config.confirm_err_actions.eql? false
@@ -5,20 +7,20 @@ module ProblemsHelper
 
   def auto_link_format(body)
     sanitize(
-      auto_link(simple_format(body), :all, target: "_blank").html_safe, # rubocop:disable Rails/OutputSafety
-      tags: %w[a p],
-      attributes: %w[href target]
+      auto_link(simple_format(body), :all, target: "_blank").html_safe,
+      tags: ["a", "p"],
+      attributes: ["href", "target"]
     )
   end
 
   def gravatar_tag(email, options = {})
-    return unless email.present?
+    return if email.blank?
 
     image_tag gravatar_url(email, options), alt: email, class: "gravatar"
   end
 
   def gravatar_url(email, options = {})
-    return unless email.present?
+    return if email.blank?
 
     default_options = {
       d: Errbit::Config.gravatar_default

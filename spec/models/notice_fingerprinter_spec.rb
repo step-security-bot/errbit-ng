@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 RSpec.describe NoticeFingerprinter, type: :model do
   let(:fingerprinter) { described_class.new }
   let(:notice) { Fabricate(:notice) }
@@ -10,12 +12,12 @@ RSpec.describe NoticeFingerprinter, type: :model do
       expect(f1).to eq(f2)
     end
 
-    %w[error_class message component action environment_name].each do |i|
+    ["error_class", "message", "component", "action", "environment_name"].each do |i|
       it "affects the fingerprint when #{i} is false" do
         f1 = fingerprinter.generate("123", notice, backtrace)
         f2 = fingerprinter.generate("123", notice, backtrace)
 
-        fingerprinter.send((i << "=").to_sym, false)
+        fingerprinter.send(:"#{i}=", false)
         f3 = fingerprinter.generate("123", notice, backtrace)
 
         expect(f1).to eq(f2)

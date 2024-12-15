@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ApplicationHelper
   def message_graph(problem)
     create_percentage_table_for(problem.messages)
@@ -39,10 +41,10 @@ module ApplicationHelper
   end
 
   def create_percentage_table_from_tallies(tallies, options = {})
-    total   = (options[:total] || total_from_tallies(tallies))
+    total = (options[:total] || total_from_tallies(tallies))
     percent = 100.0 / total.to_f
-    rows    = tallies.map { |value, count| [(count.to_f * percent), value] }. \
-      sort { |a, b| b[0] <=> a[0] }
+    rows = tallies.map { |value, count| [(count.to_f * percent), value] }
+      .sort { |a, b| b[0] <=> a[0] }
     render "problems/tally_table", rows: rows
   end
 
@@ -51,7 +53,7 @@ module ApplicationHelper
   end
 
   def tail(collection)
-    collection.to_a[head_size..-1].to_a
+    collection.to_a[head_size..].to_a
   end
 
   def issue_tracker_types
@@ -60,7 +62,7 @@ module ApplicationHelper
     end
   end
 
-private
+  private
 
   def total_from_tallies(tallies)
     tallies.values.sum

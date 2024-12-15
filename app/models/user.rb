@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class User
   PER_PAGE = 30
   include Mongoid::Document
@@ -26,11 +28,11 @@ class User
   field :remember_created_at, type: Time
 
   ### Trackable
-  field :sign_in_count,      type: Integer
+  field :sign_in_count, type: Integer
   field :current_sign_in_at, type: Time
-  field :last_sign_in_at,    type: Time
+  field :last_sign_in_at, type: Time
   field :current_sign_in_ip, type: String
-  field :last_sign_in_ip,    type: String
+  field :last_sign_in_ip, type: String
 
   ### Token_authenticatable
   field :authentication_token, type: String
@@ -40,7 +42,7 @@ class User
   before_save :ensure_authentication_token
 
   validates :name, presence: true
-  validates :github_login, uniqueness: { allow_nil: true }
+  validates :github_login, uniqueness: {allow_nil: true}
 
   if Errbit::Config.user_has_username
     field :username
@@ -60,9 +62,9 @@ class User
 
     unless user
       user = User.create(name:       data["name"],
-                         email:      data["email"],
-                         google_uid: access_token.uid,
-                         password:   Devise.friendly_token[0, 20]
+        email:      data["email"],
+        google_uid: access_token.uid,
+        password:   Devise.friendly_token[0, 20]
       )
     end
     user
@@ -116,7 +118,7 @@ class User
     save(validate: false)
   end
 
-private
+  private
 
   def generate_authentication_token
     loop do

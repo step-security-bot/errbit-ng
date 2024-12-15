@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "airbrake/version"
 require "airbrake/backtrace"
 require "airbrake/notice"
@@ -18,7 +20,7 @@ end
 
 RSpec.describe ErrorReport, type: :model do
   let(:xml) do
-    Rails.root.join("spec", "fixtures", "hoptoad_test_notice.xml").read
+    Rails.root.join("spec/fixtures/hoptoad_test_notice.xml").read
   end
 
   let(:error_report) { ErrorReport.new(xml) }
@@ -53,7 +55,7 @@ RSpec.describe ErrorReport, type: :model do
 
     context "with a minimal notice" do
       let(:xml) do
-        Rails.root.join("spec", "fixtures", "minimal_test_notice.xml").read
+        Rails.root.join("spec/fixtures/minimal_test_notice.xml").read
       end
 
       it "save a notice" do
@@ -300,7 +302,7 @@ RSpec.describe ErrorReport, type: :model do
 
     context "with xml without request section" do
       let(:xml) do
-        Rails.root.join("spec", "fixtures", "hoptoad_test_notice_without_request_section.xml").read
+        Rails.root.join("spec/fixtures/hoptoad_test_notice_without_request_section.xml").read
       end
       it "save a notice" do
         expect do
@@ -313,7 +315,7 @@ RSpec.describe ErrorReport, type: :model do
 
     context "with xml with only a single line of backtrace" do
       let(:xml) do
-        Rails.root.join("spec", "fixtures", "hoptoad_test_notice_with_one_line_of_backtrace.xml").read
+        Rails.root.join("spec/fixtures/hoptoad_test_notice_with_one_line_of_backtrace.xml").read
       end
       it "save a notice" do
         expect do

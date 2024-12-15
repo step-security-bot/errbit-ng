@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 describe Api::V1::ProblemsController, type: "controller" do
   context "when logged in" do
     before do
@@ -12,87 +14,88 @@ describe Api::V1::ProblemsController, type: "controller" do
       end
 
       it "should return JSON if JSON is requested" do
-        get :show, params: { auth_token: @user.authentication_token, format: "json", id: Problem.first.id }
-        expect { JSON.load(response.body) }.not_to raise_error # JSON::ParserError
+        get :show, params: {auth_token: @user.authentication_token, format: "json", id: Problem.first.id}
+        expect { response.parsed_body }.not_to raise_error
       end
 
       it "should return XML if XML is requested" do
-        get :index, params: { auth_token: @user.authentication_token, format: "xml", id: @problem.id }
+        get :index, params: {auth_token: @user.authentication_token, format: "xml", id: @problem.id}
         expect(Nokogiri::XML(response.body).errors).to be_empty
       end
 
       it "should return JSON by default" do
-        get :show, params: { auth_token: @user.authentication_token, id: @problem.id }
-        expect { JSON.load(response.body) }.not_to raise_error # JSON::ParserError)
+        get :show, params: {auth_token: @user.authentication_token, id: @problem.id}
+        expect { response.parsed_body }.not_to raise_error
       end
 
       it "should return the correct problem" do
-        get :show, params: { auth_token: @user.authentication_token, format: "json", id: @problem.id }
+        get :show, params: {auth_token: @user.authentication_token, format: "json", id: @problem.id}
 
-        returned_problem = JSON.parse(response.body)
+        returned_problem = response.parsed_body
         expect(returned_problem["_id"]).to eq(@problem.id.to_s)
       end
 
       it "should return only the correct fields" do
-        get :show, params: { auth_token: @user.authentication_token, format: "json", id: @problem.id }
-        returned_problem = JSON.parse(response.body)
+        get :show, params: {auth_token: @user.authentication_token, format: "json", id: @problem.id}
+        returned_problem = response.parsed_body
 
-        expect(returned_problem.keys).to match_array(%w(
-          app_name
-          first_notice_at
-          message
-          app_id
-          last_notice_at
-          _id
-          resolved
-          resolved_at
-          where
-          notices_count
-          environment))
+        expect(returned_problem.keys).to match_array([
+          "app_name",
+          "first_notice_at",
+          "message",
+          "app_id",
+          "last_notice_at",
+          "_id",
+          "resolved",
+          "resolved_at",
+          "where",
+          "notices_count",
+          "environment"
+        ])
       end
 
       it "returns a 404 if the problem cannot be found" do
-        get :show, params: { auth_token: @user.authentication_token, format: "json", id: "IdontExist" }
+        get :show, params: {auth_token: @user.authentication_token, format: "json", id: "IdontExist"}
         expect(response.status).to eq(404)
       end
     end
 
     describe "GET /api/v1/problems" do
       before do
-        Fabricate(:problem, first_notice_at: Date.new(2012, 8, 01), resolved_at: Date.new(2012, 8, 02))
-        Fabricate(:problem, first_notice_at: Date.new(2012, 8, 01), resolved_at: Date.new(2012, 8, 21))
+        Fabricate(:problem, first_notice_at: Date.new(2012, 8, 1), resolved_at: Date.new(2012, 8, 2))
+        Fabricate(:problem, first_notice_at: Date.new(2012, 8, 1), resolved_at: Date.new(2012, 8, 21))
         Fabricate(:problem, first_notice_at: Date.new(2012, 8, 21))
         Fabricate(:problem, first_notice_at: Date.new(2012, 8, 30))
       end
 
       it "should return JSON if JSON is requested" do
-        get :index, params: { auth_token: @user.authentication_token, format: "json" }
-        expect { JSON.load(response.body) }.not_to raise_error # JSON::ParserError)
+        get :index, params: {auth_token: @user.authentication_token, format: "json"}
+        expect { response.parsed_body }.not_to raise_error
       end
 
       it "should return XML if XML is requested" do
-        get :index, params: { auth_token: @user.authentication_token, format: "xml" }
+        get :index, params: {auth_token: @user.authentication_token, format: "xml"}
         expect(Nokogiri::XML(response.body).errors).to be_empty
       end
 
       it "should return JSON by default" do
-        get :index, params: { auth_token: @user.authentication_token }
-        expect { JSON.load(response.body) }.not_to raise_error # JSON::ParserError)
+        get :index, params: {auth_token: @user.authentication_token}
+        expect { response.parsed_body }.not_to raise_error
       end
 
       describe "given a date range" do
         it "should return only the problems open during the date range" do
-          get :index, params: { auth_token: @user.authentication_token, start_date: "2012-08-20", end_date: "2012-08-27" }
+          get :index, params: {auth_token: @user.authentication_token, start_date: "2012-08-20", end_date: "2012-08-27", format: "json"}
           expect(response).to be_successful
-          problems = JSON.load response.body
+          problems = response.parsed_body
           expect(problems.length).to eq 2
         end
       end
 
       it "should return all problems" do
-        get :index, params: { auth_token: @user.authentication_token }
+        get :index, params: {auth_token: @user.authentication_token, format: "json"}
         expect(response).to be_successful
-        problems = JSON.load response.body
+        problems = response.parsed_body
         expect(problems.length).to eq 4
       end
     end

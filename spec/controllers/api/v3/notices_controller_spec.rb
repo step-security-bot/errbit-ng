@@ -1,9 +1,11 @@
+# frozen_string_literal: true
+
 describe Api::V3::NoticesController, type: :controller do
   let(:app) { Fabricate(:app) }
   let(:project_id) { app.api_key }
   let(:legit_params) { {project_id: project_id, key: project_id} }
   let(:legit_body) do
-    Rails.root.join("spec", "fixtures", "api_v3_request.json").read
+    Rails.root.join("spec/fixtures/api_v3_request.json").read
   end
 
   it "sets CORS headers on POST request" do
@@ -21,7 +23,7 @@ describe Api::V3::NoticesController, type: :controller do
   it "returns created notice id in json format" do
     post :create, body: legit_body, params: {**legit_params}
     notice = Notice.last
-    expect(JSON.parse(response.body)).to eq(
+    expect(response.parsed_body).to eq(
       "id" => notice.id.to_s,
       "url" => notice.problem.url
     )

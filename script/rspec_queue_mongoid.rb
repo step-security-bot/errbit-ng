@@ -1,5 +1,6 @@
 #!/usr/bin/env ruby
-require "rubygems"
+# frozen_string_literal: true
+
 require "test_queue"
 require "test_queue/runner/rspec"
 
