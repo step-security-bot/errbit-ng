@@ -1,8 +1,10 @@
 # frozen_string_literal: true
 
-require "acceptance/acceptance_helper"
+require "rails_helper"
 
-feature "Regeneration api_Key" do
+require "features/acceptance_helper"
+
+RSpec.feature "Regeneration api_Key", type: :feature do
   let(:app) { Fabricate(:app) }
   let(:admin) { Fabricate(:admin) }
   let(:user) do
@@ -36,7 +38,7 @@ feature "Regeneration api_Key" do
   end
 end
 
-feature "Create an application" do
+RSpec.feature "Create an application", type: :feature do
   let(:admin) { Fabricate(:admin) }
   let(:user) do
     Fabricate(:user_watcher, app: app).user

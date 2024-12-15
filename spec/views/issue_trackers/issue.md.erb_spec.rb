@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
-describe "issue_trackers/issue.md.erb", type: "view" do
+require "rails_helper"
+
+RSpec.describe "issue_trackers/issue.md.erb", type: :view do
   let(:problem) do
     problem = Fabricate(:problem)
     Fabricate(:notice, err: Fabricate(:err, problem: problem))

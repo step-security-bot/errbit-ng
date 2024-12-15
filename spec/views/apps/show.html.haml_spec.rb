@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
-describe "apps/show.html.haml", type: "view" do
+require "rails_helper"
+
+RSpec.describe "apps/show.html.haml", type: :view do
   let(:app) { stub_model(App) }
   let(:user) { stub_model(User) }
 

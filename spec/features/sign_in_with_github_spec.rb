@@ -1,8 +1,10 @@
 # frozen_string_literal: true
 
-require "acceptance/acceptance_helper"
+require "rails_helper"
 
-feature "Sign in with GitHub" do
+require "features/acceptance_helper"
+
+RSpec.feature "Sign in with GitHub", type: :feature do
   background do
     allow(Errbit::Config).to receive(:github_authentication).and_return(true)
     Fabricate(:user, github_login: "nashby")

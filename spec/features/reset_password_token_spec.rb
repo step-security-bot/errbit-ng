@@ -1,8 +1,10 @@
 # frozen_string_literal: true
 
-require "acceptance/acceptance_helper"
+require "rails_helper"
 
-feature "password reset token" do
+require "features/acceptance_helper"
+
+RSpec.feature "password reset token", type: :feature do
   let(:user) { Fabricate :user }
 
   scenario "receives correct password reset token" do
