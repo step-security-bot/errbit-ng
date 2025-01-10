@@ -20,13 +20,18 @@ jobs:
         ruby: ["3.3", "jruby-9.4"]
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Harden Runner
+        uses: step-security/harden-runner@c95a14d0e5bab51a9f56296a4eb0e416910cd350 # v2.10.3
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: Set up Ruby
-        uses: ruby/setup-ruby@v1
+        uses: ruby/setup-ruby@4a9ddd6f338a97768b8006bf671dfbad383215f4 # v1.207.0
         with:
           ruby-version: ${{ matrix.ruby }}
           rubygems: latest
           bundler: latest
           bundler-cache: true
-      - uses: r7kamura/rubocop-problem-matchers-action@v1.2.2
+      - uses: r7kamura/rubocop-problem-matchers-action@59f1a0759f50cc2649849fd850b8487594bb5a81 # v1.2.2
       - run: bin/rubocop --parallel
