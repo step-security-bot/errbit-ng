@@ -1,5 +1,7 @@
 # Errbit to Errbit-NG migration guide
 
+## From Errbit main to Errbit-NG 0.1.0
+
 In current moment, errbit-ng should be drop in replacement for errbit.
 With few exceptions:
 
@@ -8,6 +10,8 @@ With few exceptions:
 3. It should be safe just remove `PORT` env from any configurations.
 4. You should not set `RACK_ENV` env if you don't know for what. It should be removed from any configurations.
 5. `MAX_THREADS` env was removed. Use default rails `RAILS_MAX_THREADS` and `RAILS_MIN_THREADS`.
+6. Add `RAILS_LOG_LEVEL` env with default `info`.
+7. `RAILS_LOG_TO_STDOUT` env was drop without replacement. This is default behavior now.
 
 Deprecations:
 

@@ -1,51 +1,74 @@
-FROM ruby:3.3.7-alpine
+# syntax = docker/dockerfile:1
 
-ENV RUBYGEMS_VERSION=3.6.3
-ENV BUNDLER_VERSION=2.6.3
+# This Dockerfile is designed for production, not development. Use with Kamal or build'n'run by hand:
+# docker build -t my-app .
+# docker run -d -p 80:80 -p 443:443 --name my-app my-app
 
-WORKDIR /app
+FROM docker.io/library/ruby:3.3.7-slim AS base
 
-# throw errors if Gemfile has been modified since Gemfile.lock
-RUN echo "gem: --no-document" >> /etc/gemrc \
-  && bundle config --global frozen 1 \
-  && bundle config --global disable_shared_gems false \
-  && gem update --system "$RUBYGEMS_VERSION" \
-  && gem install bundler --version "$BUNDLER_VERSION" \
-  && apk add --no-cache \
-    gcompat \
-    curl \
-    less \
-    libxml2-dev \
-    libxslt-dev \
-    yaml-dev \
-    nodejs \
-    tzdata
+LABEL maintainer="Ihor Zubkov <igor.zubkov@gmail.com>"
 
-COPY ["Gemfile", "Gemfile.lock", "/app/"]
+# Rails app lives here
+WORKDIR /rails
 
-COPY ["vendor/", "/app/vendor/"]
+# Install base packages
+RUN set -eux; \
+    apt-get update -qq ; \
+    apt-get dist-upgrade -qq ; \
+    apt-get install --no-install-recommends -y curl libjemalloc2 libyaml-dev ; \
+    rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
-RUN apk add --no-cache --virtual build-dependencies build-base \
-  && bundle config build.nokogiri --use-system-libraries \
-  && bundle config set without 'test development no_docker' \
-  && bundle install -j "$(getconf _NPROCESSORS_ONLN)" --retry 5 \
-  && bundle clean --force \
-  && apk del build-dependencies
+# Set production environment
+ENV RAILS_ENV="production" \
+    BUNDLE_DEPLOYMENT="1" \
+    BUNDLE_PATH="/usr/local/bundle" \
+    BUNDLE_WITHOUT="development"
 
-COPY . /app
+# Throw-away build stage to reduce size of final image
+FROM base AS build
 
-RUN RAILS_ENV=production bundle exec rake assets:precompile \
-  && rm -rf /app/tmp/* \
-  && chmod 777 /app/tmp
+# Install packages needed to build gems
+RUN set -eux; \
+    apt-get update -qq ; \
+    apt-get install --no-install-recommends -y build-essential git pkg-config ; \
+    rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
-ENV RAILS_ENV=production
+# Install application gems
+COPY Gemfile Gemfile.lock ./
+COPY vendor /rails/vendor/
+RUN set -eux; \
+    bundle install ; \
+    rm -rf ~/.bundle/ "${BUNDLE_PATH}"/ruby/*/cache "${BUNDLE_PATH}"/ruby/*/bundler/gems/*/.git ; \
+    bundle exec bootsnap precompile --gemfile
 
-ENV RAILS_LOG_TO_STDOUT=true
+# Copy application code
+COPY . .
 
-ENV RAILS_SERVE_STATIC_FILES=true
+# Precompile bootsnap code for faster boot times
+RUN bundle exec bootsnap precompile app/ lib/
 
+# Precompiling assets for production without requiring secret RAILS_MASTER_KEY
+RUN SECRET_KEY_BASE_DUMMY=1 ./bin/rails assets:precompile
+
+# Final stage for app image
+FROM base
+
+# Copy built artifacts: gems, application
+COPY --from=build "${BUNDLE_PATH}" "${BUNDLE_PATH}"
+COPY --from=build /rails /rails
+
+# Run and own only the runtime files as a non-root user for security
+RUN set -eux; \
+    groupadd --system --gid 1000 rails ; \
+    useradd rails --uid 1000 --gid 1000 --create-home --shell /bin/bash ; \
+    chown -R rails:rails db log storage tmp
+
+USER 1000:1000
+
+# Entrypoint prepares the database.
+ENTRYPOINT ["/rails/bin/docker-entrypoint"]
+
+# Start the server by default, this can be overwritten at runtime
 EXPOSE 3000/tcp
 
-HEALTHCHECK CMD curl --fail "http://$(/bin/hostname -i | /usr/bin/awk '{ print $1 }'):${PORT:-3000}/users/sign_in" || exit 1
-
-CMD ["bundle", "exec", "puma", "-C", "config/puma.rb"]
+CMD ["./bin/rails", "server"]
