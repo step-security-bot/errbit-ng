@@ -4,7 +4,7 @@
 # docker build -t my-app .
 # docker run -d -p 80:80 -p 443:443 --name my-app my-app
 
-FROM docker.io/library/ruby:3.3.7-slim AS base
+FROM docker.io/library/ruby:3.3.7-slim@sha256:28be7382d3a1d6b86bd254aff1e08a5294aa82cc305a889781c4be49d36239ce AS base
 
 LABEL maintainer="Ihor Zubkov <igor.zubkov@gmail.com>"
 
